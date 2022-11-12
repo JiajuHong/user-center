@@ -1,5 +1,4 @@
 package com.jiaju.usercenter.service.impl;
-import java.util.Date;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -16,6 +15,8 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.jiaju.usercenter.constant.UserConstant.USER_LOGIN_STATE;
+
 /**
 * @author jiaju
 * @description 针对表【user(用户)】的数据库操作Service实现
@@ -29,7 +30,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private  UserMapper userMapper;
 
     private static final String SALT = "jiaju"; // 加盐
-    private static final String USER_LOGIN_STATE = "userLoginState"; // 用户登录状态
 
     @Override
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
@@ -113,23 +113,34 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         // 3.用户脱敏
-        User safetyUser = new User();
-        safetyUser.setId(user.getId());
-        safetyUser.setUsername(user.getUsername());
-        safetyUser.setUserAccount(user.getUserAccount());
-        safetyUser.setAvatarUrl(user.getAvatarUrl());
-        safetyUser.setGender(user.getGender());
-        safetyUser.setPhone(user.getPhone());
-        safetyUser.setEmail(user.getEmail());
-        safetyUser.setUserStatus(user.getUserStatus());
-        safetyUser.setCreateTime(new Date());
-
+        User safetyUser = getSafetyUser(user);
         // 4.记录用户的登录状态
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
 
 
 
 
+        return safetyUser;
+    }
+
+    /**
+     * 用户脱敏
+     * @param originUser 原始用户
+     * @return 脱敏后的用户
+     */
+    @Override
+    public User getSafetyUser(User originUser) {
+        User safetyUser = new User();
+        safetyUser.setId(originUser.getId());
+        safetyUser.setUsername(originUser.getUsername());
+        safetyUser.setUserAccount(originUser.getUserAccount());
+        safetyUser.setAvatarUrl(originUser.getAvatarUrl());
+        safetyUser.setGender(originUser.getGender());
+        safetyUser.setUserRole(originUser.getUserRole());
+        safetyUser.setPhone(originUser.getPhone());
+        safetyUser.setEmail(originUser.getEmail());
+        safetyUser.setUserStatus(originUser.getUserStatus());
+        safetyUser.setCreateTime(originUser.getCreateTime());
         return safetyUser;
     }
 }
